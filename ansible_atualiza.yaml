@@ -1,0 +1,39 @@
+---
+- name: Atualizar configuração de rede
+  hosts: servidores
+  become: true
+  vars:
+    diretorio_remoto: /home/diogo/script
+    script_local: /home/diogo/script/config_placa.sh
+    env_local: /home/diogo/script/.env
+    script_remoto: "{{ diretorio_remoto }}/config_placa.sh"
+    env_remoto: "{{ diretorio_remoto }}/.env"
+
+  tasks:
+    - name: Criar diretório de trabalho no servidor
+      ansible.builtin.file:
+        path: "{{ diretorio_remoto }}"
+        state: directory
+        owner: diogo
+        mode: "0700"
+
+    - name: Copiar script para o servidor
+      ansible.builtin.copy:
+        src: "{{ script_local }}"
+        dest: "{{ script_remoto }}"
+        owner: diogo
+        group: diogo
+        mode: "0755"
+
+    - name: Copiar arquivo .env para o servidor
+      ansible.builtin.copy:
+        src: "{{ env_local }}"
+        dest: "{{ env_remoto }}"
+        owner: diogo
+        group: diogo
+        mode: "0600"
+
+    - name: Executar script de configuração de rede
+      ansible.builtin.shell:
+        cmd: "{{ script_remoto }} {{ env_remoto }}"
+        executable: /bin/bash
